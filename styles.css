@@ -178,6 +178,8 @@ table a {
   z-index: 1000;
   font-size: 12px;
   pointer-events: none;
+  /* Ensure tooltip text is visible */
+  color: #e0e0e0;
 }
 
 .tooltip-table {
