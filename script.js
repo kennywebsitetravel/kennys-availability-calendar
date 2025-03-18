@@ -476,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (presetOtherTours) {
     presetOtherTours.addEventListener('click', function() {
       logMessage("Preset Other Tours button clicked.");
-      document.getElementById('productIds').value = "66083,43544";
+      document.getElementById('productIds').value = "20633,66468,4308,52087,52107,18541,52092,68248,68251,66006,49688,49672";
       loadCalendarData();
     });
   } else {
