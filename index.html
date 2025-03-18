@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kennys Product Calendar Loader</title>
+  <!-- Reference to external stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Kennys Product Calendar Loader</h2>
+
+    <!-- Month/Year Dropdown Container -->
+    <div class="dropdown-container">
+      <label for="monthYearDropdown" class="hidden-label">Select Month/Year:&nbsp;&nbsp;&nbsp;</label>
+      <select id="monthYearDropdown"></select>
+    </div>
+    
+    <!-- Preset Buttons -->
+    <div class="preset-buttons">
+      <button id="presetWhitsunday">Whitsunday boats</button>
+      <button id="presetGreatBarrierReef">Great Barrier Reef Cairns</button>
+      <button id="presetOtherTours">Fraser Island</button>
+      <button id="manualLoadButton">Manual load</button>
+    </div>
+    
+    <!-- Input Row: Label, Input, and Submit Button (hidden by default) -->
+    <div class="input-row" style="display: none;">
+      <label for="productIds">Product IDs (comma separated):</label>
+      <input type="text" id="productIds" value="54584,54533,54317" />
+      <button id="loadCalendars">Submit</button>
+    </div>
+    
+    <!-- Calendar Controls (Arrow Buttons) -->
+    <div class="control-row">
+      <div id="calendarControls" class="calendar-controls">
+        <button id="prevMonth" class="arrow">&larr;</button>
+        <button id="nextMonth" class="arrow">&rarr;</button>
+      </div>
+    </div>
+    
+    <!-- Spinner and Progress Update (hidden by default) -->
+    <div id="spinner" class="spinner"></div>
+    <div id="progressUpdate" class="progress-update"></div>
+    
+    <!-- Hidden Product Table -->
+    <div id="results"></div>
+    
+    <!-- Detailed Availability Table -->
+    <div id="availabilityResults"></div>
+    
+    <!-- Legend -->
+    <div id="legend" class="legend">
+      <p><span class="legend-box" style="background-color: green;"></span>Green: Valid availability</p>
+      <p><span class="legend-box" style="background-color: #cc6666;"></span>Red: Not available / Not running</p>
+      <p><span class="legend-box" style="background-color: #cccc66;"></span>Yellow: No seasonal fares for this date or no live availability connection</p>
+    </div>
+  </div>
+
+  <!-- Reference to external JavaScript file -->
+  <script src="script.js"></script>
+</body>
+</html>
