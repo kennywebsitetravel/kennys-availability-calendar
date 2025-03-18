@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     console.error("Next month button not found.");
   }
 
-  // Tooltip Functions
+  // Tooltip Functions for availability cells.
   function showTooltip(event, responses) {
     if (responses.every(resp => resp.Error === "Caching not enabled for this fare")) {
       const tooltip = document.createElement('div');
@@ -186,6 +186,31 @@ document.addEventListener('DOMContentLoaded', function () {
     if (tooltip) {
       tooltip.remove();
       event.currentTarget._tooltip = null;
+    }
+  }
+
+  // Tooltip Functions for the product link in the first column.
+  function showLinkTooltip(event) {
+    const link = event.currentTarget;
+    const supplier = link.getAttribute('data-supplier') || "";
+    const product = link.getAttribute('data-product') || "";
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('tooltip');
+    // Display the reverse: supplier in bold then product.
+    tooltip.innerHTML = `<span style="font-weight:bold;">${supplier}</span> - ${product}`;
+    document.body.appendChild(tooltip);
+    const x = event.pageX + 10;
+    const y = event.pageY + 10;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+    link._linkTooltip = tooltip;
+  }
+
+  function hideLinkTooltip(event) {
+    const link = event.currentTarget;
+    if (link._linkTooltip) {
+      link._linkTooltip.remove();
+      link._linkTooltip = null;
     }
   }
 
@@ -377,8 +402,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const availData = await checkAvailabilityForProduct(product, accessToken, selectedMonthYear);
         const row = document.createElement('tr');
-        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name}</a></td>
+        // First column now includes supplierName
+        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank" data-supplier="${product.supplierName || ''}" data-product="${product.name}">${product.name} - ${product.supplierName || ''}</a></td>
                          <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>`;
+        // Attach tooltip events for the link in the first column
+        const link = row.querySelector('td a');
+        if (link) {
+          link.addEventListener('mouseenter', showLinkTooltip);
+          link.addEventListener('mouseleave', hideLinkTooltip);
+        }
         for (let d = startDay; d <= daysInMonth; d++) {
           const cell = document.createElement('td');
           const dayStr = d.toString().padStart(2, '0');
@@ -393,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function () {
               cell.textContent = "";
               cell.style.backgroundColor = '#cc6666';
             } else if (responses.every(item => item.Error === "Caching not enabled for this fare" || item.Error === "No BookingSystem" || item.Error === "Wrong Season / Caching not enabled for this fare" || item.Error === "Wrong Season / No BookingSystem")) {
-              cell.textContent = responses[0].Error;
+              cell.textContent = "";  // remove text when grey
               cell.style.backgroundColor = 'grey';
             } else if (responses.every(item => item.Error && (
                          item.Error === "Wrong Season" ||
@@ -463,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (presetGreatBarrierReef) {
     presetGreatBarrierReef.addEventListener('click', function() {
       logMessage("Preset Great Barrier Reef button clicked.");
-      document.getElementById('productIds').value = "3540,3539,67681,19727,66467,66867,67486,4843,66072,53073,54434";
+      document.getElementById('productIds').value = "54872,47412,47581,67827,49983,68240,49972,47561,47586,9680,1874,49978,68095,22539,1876,1883,67801,67686,3539,67681,48096,1915,3540,54434,19273,19274,4776,19727,66467,66867,49933,67486,54869,54861,49963,4843,66072,11154,49903,49958,4717,53073,34641,4086,49587,49993,67443,4090,4093,54520,4091,49988,4085,66341,55019,11666,50002,49947,4095,3185,51933";
       loadCalendarData();
     });
   } else {
@@ -486,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (presetEastCoast) {
     presetEastCoast.addEventListener('click', function() {
       logMessage("Preset East Coast button clicked.");
-      document.getElementById('productIds').value = "3540,3539,67681,19727,66467,66867,67486,4843,66072,53073,54434";
+      document.getElementById('productIds').value = "20633,66468,4308,52087,52107";
       loadCalendarData();
     });
   } else {
