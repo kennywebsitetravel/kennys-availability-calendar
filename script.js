@@ -6,8 +6,9 @@ document.addEventListener('DOMContentLoaded', function () {
   function showProductTooltip(event, product) {
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip');
-    // Display both the product name and supplierName.
-    tooltip.textContent = product.name + " - " + product.supplierName;
+    // Use fallback if supplierName is missing.
+    const supplier = product.supplierName ? product.supplierName : "No supplier";
+    tooltip.textContent = product.name + " - " + supplier;
     document.body.appendChild(tooltip);
     const x = event.pageX + 10;
     const y = event.pageY + 10;
