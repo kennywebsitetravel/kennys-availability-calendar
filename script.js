@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Tooltip Functions for availability cells.
   function showTooltip(event, responses) {
+    // Special case tooltips for specific errors.
     if (responses.every(resp => resp.Error === "Caching not enabled for this fare")) {
       const tooltip = document.createElement('div');
       tooltip.classList.add('tooltip');
@@ -196,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const product = link.getAttribute('data-product') || "";
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip');
-    // Display the reverse: supplier in bold then product.
+    // Reverse order: supplier (bold) - product.
     tooltip.innerHTML = `<span style="font-weight:bold;">${supplier}</span> - ${product}`;
     document.body.appendChild(tooltip);
     const x = event.pageX + 10;
