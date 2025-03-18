@@ -2,30 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Utility function to log key messages.
   const logMessage = message => console.log(message);
 
-  // New functions for product tooltip.
-  function showProductTooltip(event, product) {
-    const tooltip = document.createElement('div');
-    tooltip.classList.add('tooltip');
-    // Use fallback if supplierName is missing.
-    const supplier = product.supplierName ? product.supplierName : "No supplier";
-    tooltip.textContent = product.name + " - " + supplier;
-    document.body.appendChild(tooltip);
-    const x = event.pageX + 10;
-    const y = event.pageY + 10;
-    tooltip.style.left = x + 'px';
-    tooltip.style.top = y + 'px';
-    event.currentTarget._tooltip = tooltip;
-  }
-
-  function hideProductTooltip(event) {
-    const tooltip = event.currentTarget._tooltip;
-    if (tooltip) {
-      tooltip.remove();
-      event.currentTarget._tooltip = null;
-    }
-  }
-
-  // Spinner Functions.
+  // Spinner Functions
   const showSpinner = () => {
     document.getElementById('spinner').style.display = 'block';
     document.getElementById('legend').style.display = 'none';
@@ -117,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     console.error("Next month button not found.");
   }
 
-  // Tooltip Functions for availability cells.
+  // Tooltip Functions for Availability Cells (existing one)
   function showTooltip(event, responses) {
     if (responses.every(resp => resp.Error === "Caching not enabled for this fare")) {
       const tooltip = document.createElement('div');
@@ -133,7 +110,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (responses.every(resp => resp.Error &&
          (resp.Error === "Wrong Season" ||
-          resp.Error === "No BookingSystem" ||
           resp.Error === "Wrong Season / No BookingSystem" ||
           resp.Error === "Unable to fetch cached availability. Use checkavailabilityrange to get availability."))) {
       const tooltip = document.createElement('div');
@@ -209,6 +185,27 @@ document.addEventListener('DOMContentLoaded', function () {
     if (tooltip) {
       tooltip.remove();
       event.currentTarget._tooltip = null;
+    }
+  }
+
+  // Tooltip Functions for Product Links in first column
+  function showLinkTooltip(event, product) {
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('link-tooltip');
+    tooltip.innerHTML = `<strong>${product.supplierName || "No Supplier"}</strong> - ${product.name}`;
+    document.body.appendChild(tooltip);
+    const x = event.pageX + 10;
+    const y = event.pageY + 10;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+    event.currentTarget._linkTooltip = tooltip;
+  }
+
+  function hideLinkTooltip(event) {
+    const tooltip = event.currentTarget._linkTooltip;
+    if (tooltip) {
+      tooltip.remove();
+      event.currentTarget._linkTooltip = null;
     }
   }
 
@@ -336,70 +333,31 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       products.sort((a, b) => a.name.localeCompare(b.name));
-
-      // Build the (hidden) products table.
       const fragProducts = document.createDocumentFragment();
       const productsTable = document.createElement('table');
-      // Create table header.
-      const thead = document.createElement('thead');
-      const headerRow = document.createElement('tr');
-      const thName = document.createElement('th');
-      thName.textContent = "Product Name";
-      const thDuration = document.createElement('th');
-      thDuration.textContent = "Duration";
-      const thPrices = document.createElement('th');
-      thPrices.textContent = "Product Prices Details IDs";
-      headerRow.appendChild(thName);
-      headerRow.appendChild(thDuration);
-      headerRow.appendChild(thPrices);
-      thead.appendChild(headerRow);
-      productsTable.appendChild(thead);
-
+      productsTable.innerHTML = `<thead>
+        <tr>
+          <th>Product Name</th>
+          <th>Duration</th>
+          <th>Product Prices Details IDs</th>
+        </tr>
+      </thead>`;
       const ptbody = document.createElement('tbody');
       products.forEach(product => {
         const row = document.createElement('tr');
-
-        // Product Name column with tooltip on hover.
-        const tdName = document.createElement('td');
-        const link = document.createElement('a');
-        link.href = `https://tdms.websitetravel.com/#search/text/${product.productId}`;
-        link.target = "_blank";
-        link.textContent = product.name;
-        link.addEventListener('mouseenter', (e) => {
-          showProductTooltip(e, product);
-        });
-        link.addEventListener('mouseleave', hideProductTooltip);
-        tdName.appendChild(link);
-
-        // Duration column.
-        const tdDuration = document.createElement('td');
-        tdDuration.textContent = (product.durationDays || "0") + "/" + (product.durationNight || "0");
-
-        // Product Prices Details IDs column.
-        const tdPrices = document.createElement('td');
-        if (Array.isArray(product.faresprices)) {
-          tdPrices.textContent = product.faresprices.map(f => f.productPricesDetailsId).join(', ');
-        } else {
-          tdPrices.textContent = "N/A";
-        }
-
-        row.appendChild(tdName);
-        row.appendChild(tdDuration);
-        row.appendChild(tdPrices);
+        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name} - ${product.supplierName || ""}</a></td>
+                         <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>
+                         <td>${(Array.isArray(product.faresprices) ? product.faresprices.map(f => f.productPricesDetailsId).join(', ') : "N/A")}</td>`;
         ptbody.appendChild(row);
       });
       productsTable.appendChild(ptbody);
       fragProducts.appendChild(productsTable);
       document.getElementById('results').innerHTML = "";
       document.getElementById('results').appendChild(fragProducts);
-
-      // Build the Availability Table.
       const fragAvail = document.createDocumentFragment();
       const availTable = document.createElement('table');
       availTable.classList.add("availability-table");
-      const availThead = document.createElement('thead');
-
-      // First header row: Weekday initials from startDay to daysInMonth.
+      const thead = document.createElement('thead');
       const weekdayRow = document.createElement('tr');
       let emptyTh = document.createElement('th');
       emptyTh.colSpan = 2;
@@ -412,30 +370,24 @@ document.addEventListener('DOMContentLoaded', function () {
         th.style.fontSize = '0.8em';
         weekdayRow.appendChild(th);
       }
-      availThead.appendChild(weekdayRow);
-
-      // Second header row: "Product Name", "Duration", then day numbers.
-      const headerRow2 = document.createElement('tr');
-      let nameTh2 = document.createElement('th');
-      nameTh2.textContent = "Product Name";
-      headerRow2.appendChild(nameTh2);
-      let durationTh2 = document.createElement('th');
-      durationTh2.textContent = "Duration";
-      headerRow2.appendChild(durationTh2);
+      thead.appendChild(weekdayRow);
+      const headerRow = document.createElement('tr');
+      let nameTh = document.createElement('th');
+      nameTh.textContent = "Product Name";
+      headerRow.appendChild(nameTh);
+      let durationTh = document.createElement('th');
+      durationTh.textContent = "Duration";
+      headerRow.appendChild(durationTh);
       for (let d = startDay; d <= daysInMonth; d++) {
         let th = document.createElement('th');
         th.textContent = d;
-        headerRow2.appendChild(th);
+        headerRow.appendChild(th);
       }
-      availThead.appendChild(headerRow2);
-      availTable.appendChild(availThead);
-
-      // Set up progress update.
+      thead.appendChild(headerRow);
+      availTable.appendChild(thead);
       const totalProducts = products.length;
       let progressCount = 0;
       document.getElementById('progressUpdate').textContent = progressCount + " / " + totalProducts + " products fetched";
-
-      // Build table rows and update progress after each product is processed.
       const tbodyFragment = document.createDocumentFragment();
       for (const product of products) {
         if (!Array.isArray(product.faresprices) || product.faresprices.length === 0) {
@@ -445,8 +397,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const availData = await checkAvailabilityForProduct(product, accessToken, selectedMonthYear);
         const row = document.createElement('tr');
-        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name}</a></td>
+        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name} - ${product.supplierName || ""}</a></td>
                          <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>`;
+        // Attach tooltip events to the product link in the first column
+        const link = row.querySelector('td a');
+        if(link) {
+          link.addEventListener('mouseenter', function(e) {
+            showLinkTooltip(e, product);
+          });
+          link.addEventListener('mouseleave', function(e) {
+            hideLinkTooltip(e);
+          });
+        }
         for (let d = startDay; d <= daysInMonth; d++) {
           const cell = document.createElement('td');
           const dayStr = d.toString().padStart(2, '0');
@@ -457,26 +419,24 @@ document.addEventListener('DOMContentLoaded', function () {
               cell.textContent = "";
               cell.style.backgroundColor = 'green';
             } else if (responses.some(item => item.NumAvailable !== undefined) &&
-                       responses.every(item => item.NumAvailable === 0 || item.NumAvailable === -1)) {
+                       responses.every(item => item.NumAvailable <= 0)) {
               cell.textContent = "";
               cell.style.backgroundColor = '#cc6666';
-            } else if (responses.every(item => item.Error === "Caching not enabled for this fare")) {
+            } else if (responses.every(item => item.Error && 
+                       (["No BookingSystem", "Caching not enabled for this fare", "Wrong Season / Caching not enabled for this fare", "Wrong Season / No BookingSystem"].includes(item.Error)))) {
               cell.textContent = "";
-              cell.style.backgroundColor = '#cc6666';
-            } else if (responses.every(item => item.Error && (
-                         item.Error === "Wrong Season" ||
-                         item.Error === "No BookingSystem" ||
-                         item.Error === "Wrong Season / No BookingSystem" ||
-                         item.Error === "Unable to fetch cached availability. Use checkavailabilityrange to get availability."))) {
+              cell.style.backgroundColor = 'grey';
+            } else if (responses.every(item => item.Error && 
+                       (["Wrong Season", "Unable to fetch cached availability. Use checkavailabilityrange to get availability."].includes(item.Error)))) {
               cell.textContent = "";
               cell.style.backgroundColor = '#cccc66';
             } else {
               const validResponse = responses.find(item => item.NumAvailable !== undefined);
               if (validResponse) {
-                cell.textContent = (validResponse.NumAvailable === 0 || validResponse.NumAvailable === -1)
+                cell.textContent = (validResponse.NumAvailable <= 0)
                   ? ""
                   : validResponse.NumAvailable;
-                if (validResponse.NumAvailable === 0 || validResponse.NumAvailable === -1) {
+                if (validResponse.NumAvailable <= 0) {
                   cell.style.backgroundColor = '#cc6666';
                 }
               } else {
@@ -533,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (presetGreatBarrierReef) {
     presetGreatBarrierReef.addEventListener('click', function() {
       logMessage("Preset Great Barrier Reef button clicked.");
-      document.getElementById('productIds').value = "66086,66080";
+      document.getElementById('productIds').value = "54872,47412,47581,67827,49983,68240,49972,47561,47586,9680,1874,49978,68095,22539,1876,1883,67801,67686,3539,67681,48096,1915,3540,54434,19273,19274,4776,19727,66467,66867,49933,67486,54869,54861,49963,4843,66072,11154,49903,49958,4717,53073,34641,4086,49587,49993,67443,4090,4093,54520,4091,49988,4085,66341,55019,11666,50002,49947,4095,3185,51933";
       loadCalendarData();
     });
   } else {
