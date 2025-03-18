@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function () {
               cell.textContent = "";
               cell.style.backgroundColor = '#cc6666';
             } else if (responses.every(item => item.Error === "Caching not enabled for this fare" || item.Error === "No BookingSystem" || item.Error === "Wrong Season / Caching not enabled for this fare" || item.Error === "Wrong Season / No BookingSystem")) {
-              cell.textContent = "";  // remove text when grey
+              cell.textContent = "";
               cell.style.backgroundColor = 'grey';
             } else if (responses.every(item => item.Error && (
                          item.Error === "Wrong Season" ||
@@ -479,52 +479,33 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Preset Buttons Event Listeners.
-  const presetWhitsunday = document.getElementById('presetWhitsunday');
-  if (presetWhitsunday) {
-    presetWhitsunday.addEventListener('click', function() {
-      logMessage("Preset Whitsunday button clicked.");
-      document.getElementById('productIds').value = "66086,66080,66083,43544,49872,3542,54377,68213,3549,17400,54332,66095,66969,66092,54367,54584,54533,54317,54530,54289,54284,67804,54775,54342,54254,54244,54347,54890,54956,54587,54294,66248,54269";
-      loadCalendarData();
-    });
-  } else {
-    console.error("Preset Whitsunday button not found.");
+  // NEW: Load presets from presets.json and create preset buttons dynamically.
+  async function loadPresets() {
+    try {
+      const response = await fetch('presets.json');
+      if (!response.ok) {
+        throw new Error("Could not load presets.");
+      }
+      const data = await response.json();
+      const presets = data.presets;
+      const container = document.getElementById('preset-buttons');
+      presets.forEach(preset => {
+        const btn = document.createElement('button');
+        btn.id = preset.id;
+        btn.textContent = preset.name;
+        btn.addEventListener('click', () => {
+          logMessage(`Preset ${preset.name} button clicked.`);
+          document.getElementById('productIds').value = preset.productIds;
+          loadCalendarData();
+        });
+        container.appendChild(btn);
+      });
+    } catch (error) {
+      console.error("Error loading presets:", error);
+    }
   }
 
-  const presetGreatBarrierReef = document.getElementById('presetGreatBarrierReef');
-  if (presetGreatBarrierReef) {
-    presetGreatBarrierReef.addEventListener('click', function() {
-      logMessage("Preset Great Barrier Reef button clicked.");
-      document.getElementById('productIds').value = "3540,3539,67681,19727,66467,66867,67486,4843,66072,53073,54434";
-      loadCalendarData();
-    });
-  } else {
-    console.error("Preset Great Barrier Reef button not found.");
-  }
-
-  const presetOtherTours = document.getElementById('presetOtherTours');
-  if (presetOtherTours) {
-    presetOtherTours.addEventListener('click', function() {
-      logMessage("Preset Other Tours button clicked.");
-      document.getElementById('productIds').value = "52107,18541,52092,68248,68251,66006,49688,49672";
-      loadCalendarData();
-    });
-  } else {
-    console.error("Preset Other Tours button not found.");
-  }
-
-  // New Preset for East Coast
-  const presetEastCoast = document.getElementById('presetEastCoast');
-  if (presetEastCoast) {
-    presetEastCoast.addEventListener('click', function() {
-      logMessage("Preset East Coast button clicked.");
-      document.getElementById('productIds').value = "20633,66468,4308,52087";
-      loadCalendarData();
-    });
-  } else {
-    console.error("Preset East Coast button not found.");
-  }
-
+  // Manual load button.
   const manualLoadButton = document.getElementById('manualLoadButton');
   if (manualLoadButton) {
     manualLoadButton.addEventListener('click', function() {
@@ -535,7 +516,8 @@ document.addEventListener('DOMContentLoaded', function () {
     console.error("Manual load button not found.");
   }
 
-  // Initialize dropdown and attach Submit event.
+  // Initialize dropdown, load presets, and attach Submit event.
   populateMonthYearDropdown();
+  loadPresets();
   document.getElementById('loadCalendars').addEventListener('click', loadCalendarData);
 });
