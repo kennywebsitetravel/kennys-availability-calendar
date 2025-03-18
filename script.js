@@ -2,7 +2,29 @@ document.addEventListener('DOMContentLoaded', function () {
   // Utility function to log key messages.
   const logMessage = message => console.log(message);
 
-  // Spinner Functions
+  // New functions for product tooltip.
+  function showProductTooltip(event, product) {
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('tooltip');
+    // Display both the product name and supplierName.
+    tooltip.textContent = product.name + " - " + product.supplierName;
+    document.body.appendChild(tooltip);
+    const x = event.pageX + 10;
+    const y = event.pageY + 10;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+    event.currentTarget._tooltip = tooltip;
+  }
+
+  function hideProductTooltip(event) {
+    const tooltip = event.currentTarget._tooltip;
+    if (tooltip) {
+      tooltip.remove();
+      event.currentTarget._tooltip = null;
+    }
+  }
+
+  // Spinner Functions.
   const showSpinner = () => {
     document.getElementById('spinner').style.display = 'block';
     document.getElementById('legend').style.display = 'none';
@@ -94,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
     console.error("Next month button not found.");
   }
 
-  // Tooltip Functions
+  // Tooltip Functions for availability cells.
   function showTooltip(event, responses) {
     if (responses.every(resp => resp.Error === "Caching not enabled for this fare")) {
       const tooltip = document.createElement('div');
@@ -313,31 +335,70 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       products.sort((a, b) => a.name.localeCompare(b.name));
+
+      // Build the (hidden) products table.
       const fragProducts = document.createDocumentFragment();
       const productsTable = document.createElement('table');
-      productsTable.innerHTML = `<thead>
-        <tr>
-          <th>Product Name</th>
-          <th>Duration</th>
-          <th>Product Prices Details IDs</th>
-        </tr>
-      </thead>`;
+      // Create table header.
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      const thName = document.createElement('th');
+      thName.textContent = "Product Name";
+      const thDuration = document.createElement('th');
+      thDuration.textContent = "Duration";
+      const thPrices = document.createElement('th');
+      thPrices.textContent = "Product Prices Details IDs";
+      headerRow.appendChild(thName);
+      headerRow.appendChild(thDuration);
+      headerRow.appendChild(thPrices);
+      thead.appendChild(headerRow);
+      productsTable.appendChild(thead);
+
       const ptbody = document.createElement('tbody');
       products.forEach(product => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name}</a></td>
-                         <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>
-                         <td>${(Array.isArray(product.faresprices) ? product.faresprices.map(f => f.productPricesDetailsId).join(', ') : "N/A")}</td>`;
+
+        // Product Name column with tooltip on hover.
+        const tdName = document.createElement('td');
+        const link = document.createElement('a');
+        link.href = `https://tdms.websitetravel.com/#search/text/${product.productId}`;
+        link.target = "_blank";
+        link.textContent = product.name;
+        link.addEventListener('mouseenter', (e) => {
+          showProductTooltip(e, product);
+        });
+        link.addEventListener('mouseleave', hideProductTooltip);
+        tdName.appendChild(link);
+
+        // Duration column.
+        const tdDuration = document.createElement('td');
+        tdDuration.textContent = (product.durationDays || "0") + "/" + (product.durationNight || "0");
+
+        // Product Prices Details IDs column.
+        const tdPrices = document.createElement('td');
+        if (Array.isArray(product.faresprices)) {
+          tdPrices.textContent = product.faresprices.map(f => f.productPricesDetailsId).join(', ');
+        } else {
+          tdPrices.textContent = "N/A";
+        }
+
+        row.appendChild(tdName);
+        row.appendChild(tdDuration);
+        row.appendChild(tdPrices);
         ptbody.appendChild(row);
       });
       productsTable.appendChild(ptbody);
       fragProducts.appendChild(productsTable);
       document.getElementById('results').innerHTML = "";
       document.getElementById('results').appendChild(fragProducts);
+
+      // Build the Availability Table.
       const fragAvail = document.createDocumentFragment();
       const availTable = document.createElement('table');
       availTable.classList.add("availability-table");
-      const thead = document.createElement('thead');
+      const availThead = document.createElement('thead');
+
+      // First header row: Weekday initials from startDay to daysInMonth.
       const weekdayRow = document.createElement('tr');
       let emptyTh = document.createElement('th');
       emptyTh.colSpan = 2;
@@ -350,24 +411,30 @@ document.addEventListener('DOMContentLoaded', function () {
         th.style.fontSize = '0.8em';
         weekdayRow.appendChild(th);
       }
-      thead.appendChild(weekdayRow);
-      const headerRow = document.createElement('tr');
-      let nameTh = document.createElement('th');
-      nameTh.textContent = "Product Name";
-      headerRow.appendChild(nameTh);
-      let durationTh = document.createElement('th');
-      durationTh.textContent = "Duration";
-      headerRow.appendChild(durationTh);
+      availThead.appendChild(weekdayRow);
+
+      // Second header row: "Product Name", "Duration", then day numbers.
+      const headerRow2 = document.createElement('tr');
+      let nameTh2 = document.createElement('th');
+      nameTh2.textContent = "Product Name";
+      headerRow2.appendChild(nameTh2);
+      let durationTh2 = document.createElement('th');
+      durationTh2.textContent = "Duration";
+      headerRow2.appendChild(durationTh2);
       for (let d = startDay; d <= daysInMonth; d++) {
         let th = document.createElement('th');
         th.textContent = d;
-        headerRow.appendChild(th);
+        headerRow2.appendChild(th);
       }
-      thead.appendChild(headerRow);
-      availTable.appendChild(thead);
+      availThead.appendChild(headerRow2);
+      availTable.appendChild(availThead);
+
+      // Set up progress update.
       const totalProducts = products.length;
       let progressCount = 0;
       document.getElementById('progressUpdate').textContent = progressCount + " / " + totalProducts + " products fetched";
+
+      // Build table rows and update progress after each product is processed.
       const tbodyFragment = document.createDocumentFragment();
       for (const product of products) {
         if (!Array.isArray(product.faresprices) || product.faresprices.length === 0) {
