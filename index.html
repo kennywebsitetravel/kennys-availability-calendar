@@ -16,12 +16,16 @@
       <select id="monthYearDropdown"></select>
     </div>
     
-    <!-- Preset Buttons Container (loaded dynamically from JSON) -->
+    <!-- Preset Buttons Container (buttons loaded from presets.json will appear here) -->
     <div class="preset-buttons" id="preset-buttons">
-      <!-- Preset buttons will be added here -->
+      <!-- If presets.json fails to load, these static buttons are available as a fallback -->
+      <button id="presetWhitsunday">Whitsunday boats</button>
+      <button id="presetGreatBarrierReef">Great Barrier Reef Cairns</button>
+      <button id="presetOtherTours">Fraser Island</button>
+      <button id="presetEastCoast">East Coast</button>
     </div>
     
-    <!-- Manual load button (always visible) -->
+    <!-- Manual load button -->
     <div class="preset-buttons">
       <button id="manualLoadButton">Manual load</button>
     </div>
