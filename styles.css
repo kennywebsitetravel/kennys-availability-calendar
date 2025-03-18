@@ -146,6 +146,11 @@ table a {
   text-decoration: none;
 }
 
+/* Set font size for table links */
+td a {
+  font-size: 13px;
+}
+
 /* Legend Styles */
 .legend {
   margin-top: 20px;
@@ -169,7 +174,7 @@ table a {
   border: 1px solid #333;
 }
 
-/* Tooltip Styles */
+/* Tooltip Styles for Availability Cells */
 .tooltip {
   position: absolute;
   background: #1e1e1e;
@@ -178,8 +183,6 @@ table a {
   z-index: 1000;
   font-size: 12px;
   pointer-events: none;
-  /* Ensure tooltip text is visible */
-  color: #e0e0e0;
 }
 
 .tooltip-table {
@@ -198,4 +201,17 @@ table a {
 .availability-table td:nth-child(n+2) {
   padding: 0;
   width: 20px;
+}
+
+/* Link Tooltip Styles (for product link hover) */
+.link-tooltip {
+  position: absolute;
+  background-color: #FECB00;
+  color: black;
+  padding: 5px;
+  border: 1px solid #444;
+  font-size: 15px; /* 2px larger than the base 13px */
+  z-index: 1000;
+  pointer-events: none;
+  border-radius: 4px;
 }
