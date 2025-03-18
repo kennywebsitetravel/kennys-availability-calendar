@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (presetGreatBarrierReef) {
     presetGreatBarrierReef.addEventListener('click', function() {
       logMessage("Preset Great Barrier Reef button clicked.");
-      document.getElementById('productIds').value = "54872,47412,47581,67827,49983,68240,49972,47561,47586,9680,1874,49978,68095,22539,1876,1883,67801,67686,3539,67681,48096,1915,3540,54434,19273,19274,4776,19727,66467,66867,49933,67486,54869,54861,49963,4843,66072,11154,49903,49958,4717,53073,34641,4086,49587,49993,67443,4090,4093,54520,4091,49988,4085,66341,55019,11666,50002,49947,4095,3185,51933";
+      document.getElementById('productIds').value = "3540,3539,67681,19727,66467,66867,67486,4843,66072,53073,54434";
       loadCalendarData();
     });
   } else {
@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (presetOtherTours) {
     presetOtherTours.addEventListener('click', function() {
       logMessage("Preset Other Tours button clicked.");
-      document.getElementById('productIds').value = "20633,66468,4308,52087,52107,18541,52092,68248,68251,66006,49688,49672";
+      document.getElementById('productIds').value = "52107,18541,52092,68248,68251,66006,49688,49672";
       loadCalendarData();
     });
   } else {
@@ -518,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (presetEastCoast) {
     presetEastCoast.addEventListener('click', function() {
       logMessage("Preset East Coast button clicked.");
-      document.getElementById('productIds').value = "20633,66468,4308,52087,52107";
+      document.getElementById('productIds').value = "20633,66468,4308,52087";
       loadCalendarData();
     });
   } else {
