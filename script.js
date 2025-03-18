@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     console.error("Next month button not found.");
   }
 
-  // Tooltip Functions for Availability Cells (existing one)
+  // Tooltip Functions
   function showTooltip(event, responses) {
     if (responses.every(resp => resp.Error === "Caching not enabled for this fare")) {
       const tooltip = document.createElement('div');
@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (responses.every(resp => resp.Error &&
          (resp.Error === "Wrong Season" ||
+          resp.Error === "No BookingSystem" ||
           resp.Error === "Wrong Season / No BookingSystem" ||
           resp.Error === "Unable to fetch cached availability. Use checkavailabilityrange to get availability."))) {
       const tooltip = document.createElement('div');
@@ -185,27 +186,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (tooltip) {
       tooltip.remove();
       event.currentTarget._tooltip = null;
-    }
-  }
-
-  // Tooltip Functions for Product Links in first column
-  function showLinkTooltip(event, product) {
-    const tooltip = document.createElement('div');
-    tooltip.classList.add('link-tooltip');
-    tooltip.innerHTML = `<strong>${product.supplierName || "No Supplier"}</strong> - ${product.name}`;
-    document.body.appendChild(tooltip);
-    const x = event.pageX + 10;
-    const y = event.pageY + 10;
-    tooltip.style.left = x + 'px';
-    tooltip.style.top = y + 'px';
-    event.currentTarget._linkTooltip = tooltip;
-  }
-
-  function hideLinkTooltip(event) {
-    const tooltip = event.currentTarget._linkTooltip;
-    if (tooltip) {
-      tooltip.remove();
-      event.currentTarget._linkTooltip = null;
     }
   }
 
@@ -345,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const ptbody = document.createElement('tbody');
       products.forEach(product => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name} - ${product.supplierName || ""}</a></td>
+        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name}</a></td>
                          <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>
                          <td>${(Array.isArray(product.faresprices) ? product.faresprices.map(f => f.productPricesDetailsId).join(', ') : "N/A")}</td>`;
         ptbody.appendChild(row);
@@ -397,18 +377,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const availData = await checkAvailabilityForProduct(product, accessToken, selectedMonthYear);
         const row = document.createElement('tr');
-        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name} - ${product.supplierName || ""}</a></td>
+        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name}</a></td>
                          <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>`;
-        // Attach tooltip events to the product link in the first column
-        const link = row.querySelector('td a');
-        if(link) {
-          link.addEventListener('mouseenter', function(e) {
-            showLinkTooltip(e, product);
-          });
-          link.addEventListener('mouseleave', function(e) {
-            hideLinkTooltip(e);
-          });
-        }
         for (let d = startDay; d <= daysInMonth; d++) {
           const cell = document.createElement('td');
           const dayStr = d.toString().padStart(2, '0');
@@ -419,24 +389,24 @@ document.addEventListener('DOMContentLoaded', function () {
               cell.textContent = "";
               cell.style.backgroundColor = 'green';
             } else if (responses.some(item => item.NumAvailable !== undefined) &&
-                       responses.every(item => item.NumAvailable <= 0)) {
+                       responses.every(item => item.NumAvailable !== undefined && (item.NumAvailable === 0 || item.NumAvailable === -1))) {
               cell.textContent = "";
               cell.style.backgroundColor = '#cc6666';
-            } else if (responses.every(item => item.Error && 
-                       (["No BookingSystem", "Caching not enabled for this fare", "Wrong Season / Caching not enabled for this fare", "Wrong Season / No BookingSystem"].includes(item.Error)))) {
-              cell.textContent = "";
+            } else if (responses.every(item => item.Error === "Caching not enabled for this fare" || item.Error === "No BookingSystem" || item.Error === "Wrong Season / Caching not enabled for this fare" || item.Error === "Wrong Season / No BookingSystem")) {
+              cell.textContent = responses[0].Error;
               cell.style.backgroundColor = 'grey';
-            } else if (responses.every(item => item.Error && 
-                       (["Wrong Season", "Unable to fetch cached availability. Use checkavailabilityrange to get availability."].includes(item.Error)))) {
+            } else if (responses.every(item => item.Error && (
+                         item.Error === "Wrong Season" ||
+                         item.Error === "Unable to fetch cached availability. Use checkavailabilityrange to get availability."))) {
               cell.textContent = "";
               cell.style.backgroundColor = '#cccc66';
             } else {
               const validResponse = responses.find(item => item.NumAvailable !== undefined);
               if (validResponse) {
-                cell.textContent = (validResponse.NumAvailable <= 0)
+                cell.textContent = (validResponse.NumAvailable === 0 || validResponse.NumAvailable === -1)
                   ? ""
                   : validResponse.NumAvailable;
-                if (validResponse.NumAvailable <= 0) {
+                if (validResponse.NumAvailable === 0 || validResponse.NumAvailable === -1) {
                   cell.style.backgroundColor = '#cc6666';
                 }
               } else {
@@ -509,6 +479,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   } else {
     console.error("Preset Other Tours button not found.");
+  }
+
+  // New Preset for East Coast
+  const presetEastCoast = document.getElementById('presetEastCoast');
+  if (presetEastCoast) {
+    presetEastCoast.addEventListener('click', function() {
+      logMessage("Preset East Coast button clicked.");
+      document.getElementById('productIds').value = "20633,66468,4308,52087,52107";
+      loadCalendarData();
+    });
+  } else {
+    console.error("Preset East Coast button not found.");
   }
 
   const manualLoadButton = document.getElementById('manualLoadButton');
