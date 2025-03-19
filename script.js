@@ -130,6 +130,7 @@ function showCellTooltip(event, responses) {
     prodNameEl.textContent = responses[0].ProductName;
     prodNameEl.style.fontWeight = 'bold';
     prodNameEl.style.marginBottom = '5px';
+    prodNameEl.style.color = '#000000';
     tooltip.appendChild(prodNameEl);
   }
 
