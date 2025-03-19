@@ -192,3 +192,10 @@ table a {
   font-size: 15px; /* 2px larger than the default 13px */
   pointer-events: none;
 }
+
+/* Availability Table Specific Styles */
+.availability-table th:nth-child(n+2),
+.availability-table td:nth-child(n+2) {
+  padding: 0;
+  width: 20px;
+}
