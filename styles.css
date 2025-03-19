@@ -54,7 +54,7 @@ input[type="text"], select {
   color: #e0e0e0;
 }
 
-/* Button Styles */
+/* Button Styles (Updated) */
 button {
   padding: 10px 20px;
   font-size: 16px;
@@ -173,15 +173,17 @@ table a {
 /* Tooltip Styles */
 .tooltip {
   position: absolute;
-  background: #FECB00;  /* same as button background */
-  border: 1px solid #444;
+  background: #FECB00;  /* same as buttons */
+  color: black;
+  font-size: 15px;  /* assuming base 13px plus 2px */
   padding: 5px;
+  border: 1px solid #444;
+  border-radius: 5px;
   z-index: 1000;
-  font-size: 15px; /* increased by 2px from a 13px base */
   pointer-events: none;
-  color: #000;
 }
 
+/* Tooltip Table */
 .tooltip-table {
   border-collapse: collapse;
 }
