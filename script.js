@@ -123,6 +123,13 @@ document.addEventListener('DOMContentLoaded', function () {
   function showCellTooltip(event, responses) {
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip');
+    if (responses[0] && responses[0].ProductName) {
+  const prodNameEl = document.createElement('div');
+  prodNameEl.textContent = responses[0].ProductName;
+  prodNameEl.style.fontWeight = 'bold';
+  prodNameEl.style.marginBottom = '5px';
+  tooltip.appendChild(prodNameEl);
+}
     tooltip.style.position = 'absolute';
     tooltip.style.background = '#FECB00';
     tooltip.style.color = '#FFFFFF';
@@ -130,6 +137,8 @@ document.addEventListener('DOMContentLoaded', function () {
     tooltip.style.padding = '5px';
     tooltip.style.border = '1px solid #333';
     tooltip.style.zIndex = '9999';
+
+    
 
     // Define error messages to check.
     const errorMessages = [
