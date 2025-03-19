@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
       }
       
-      // Build products table.
+     // Build products table.
       const fragProducts = document.createDocumentFragment();
       const productsTable = document.createElement('table');
       productsTable.innerHTML = `<thead>
@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function () {
               // Check error messages.
               const errors = responses.filter(item => item.Error).map(item => item.Error);
               if (errors.length > 0) {
-                if (errors.every(e => e.includes("Caching not enabled") || e.includes("No BookingSystem"))) {
+                if (errors.every(e => e.includes("Caching not enabled for this fare") || e.includes("No BookingSystem"))) {
                   cellColor = 'grey';
                 } else if (errors.some(e => e.includes("Wrong Season"))) {
                   cellColor = '#cccc66'; // yellow
@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function () {
     presetsContainer.appendChild(manualBtn);
   }
 
-  // Fetch presets JSON from an external file.
+  // Fetch presets JSON from an external file (do not hardcode presets in this script).
   fetch('presets.json')
     .then(response => response.json())
     .then(data => {
