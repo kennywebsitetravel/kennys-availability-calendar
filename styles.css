@@ -32,6 +32,13 @@ body {
   gap: 10px;
 }
 
+/* Manual Load Button Container */
+.manual-load-container {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+}
+
 /* Input Row: Label, Input, and Button on one line; hidden by default */
 .input-row {
   display: none;
@@ -68,6 +75,13 @@ button {
 
 button:hover {
   background-color: #ffd635;
+}
+
+/* Link Styles inside table cells */
+td a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
 }
 
 /* Hide the Product Table */
@@ -140,13 +154,6 @@ table tr td:first-child {
   text-overflow: ellipsis;
 }
 
-/* Links inside tables */
-table a {
-  color: #ffffff;
-  text-decoration: none;
-  font-size: 13px;
-}
-
 /* Legend Styles */
 .legend {
   margin-top: 20px;
@@ -173,17 +180,19 @@ table a {
 /* Tooltip Styles */
 .tooltip {
   position: absolute;
-  background: #FECB00;  /* same as buttons */
-  color: black;
-  font-size: 15px;  /* assuming base 13px plus 2px */
-  padding: 5px;
+  background: #FECB00;
+  color: #000;
   border: 1px solid #444;
-  border-radius: 5px;
+  padding: 5px;
   z-index: 1000;
+  font-size: 18px; /* increased by 2px from 16px */
   pointer-events: none;
 }
 
-/* Tooltip Table */
+.tooltip b {
+  font-weight: bold;
+}
+
 .tooltip-table {
   border-collapse: collapse;
 }
@@ -192,7 +201,7 @@ table a {
 .tooltip-table td {
   border: 1px solid #555;
   padding: 2px 4px;
-  color: #e0e0e0;
+  color: #000;
 }
 
 /* Availability Table Specific Styles */
