@@ -1,8 +1,9 @@
-document.addEventListener('DOMContentLoaded', function () {
-  // Global variable to store current sorting mode ("alphabetical" or "list")
-  let currentSorting = "alphabetical";
+// Global variables to hold current preset sorting details
+let currentPresetSorting = ""; // "alphabetical" or "list"
+let currentPresetOrder = [];   // Array of productIds if sorting is "list"
 
-  // Utility function to log messages.
+document.addEventListener('DOMContentLoaded', function () {
+  // Utility function to log key messages.
   const logMessage = message => console.log(message);
 
   // Spinner Functions
@@ -97,63 +98,23 @@ document.addEventListener('DOMContentLoaded', function () {
     console.error("Next month button not found.");
   }
 
-  // Tooltip for availability cells.
-  function showTooltip(event, responses) {
-    // Check for a couple specific errors for a simple tooltip.
-    if (responses.every(resp => resp.Error === "Caching not enabled for this fare")) {
-      const tooltip = document.createElement('div');
-      tooltip.classList.add('tooltip');
-      tooltip.textContent = "Caching not enabled for this fare";
-      document.body.appendChild(tooltip);
-      const x = event.pageX + 10;
-      const y = event.pageY + 10;
-      tooltip.style.left = x + 'px';
-      tooltip.style.top = y + 'px';
-      event.currentTarget._tooltip = tooltip;
-      return;
-    }
-    if (responses.every(resp => resp.Error &&
-         (resp.Error === "Wrong Season" ||
-          resp.Error === "No BookingSystem" ||
-          resp.Error === "Wrong Season / No BookingSystem" ||
-          resp.Error === "Unable to fetch cached availability. Use checkavailabilityrange to get availability."))) {
-      const tooltip = document.createElement('div');
-      tooltip.classList.add('tooltip');
-      tooltip.textContent = "Wrong Season";
-      document.body.appendChild(tooltip);
-      const x = event.pageX + 10;
-      const y = event.pageY + 10;
-      tooltip.style.left = x + 'px';
-      tooltip.style.top = y + 'px';
-      event.currentTarget._tooltip = tooltip;
-      return;
-    }
-    let validResponses = responses.filter(resp => resp.Error !== "No BookingSystem" && resp.Error !== "Wrong Season");
-    const uniqueResponses = {};
-    validResponses.forEach(resp => {
-      const id = resp.ProductPricesDetailsId;
-      if (!(id in uniqueResponses)) {
-        uniqueResponses[id] = resp;
-      } else {
-        if (resp.NumAvailable !== undefined && resp.NumAvailable > 0 &&
-            (uniqueResponses[id].NumAvailable === undefined || uniqueResponses[id].NumAvailable <= 0)) {
-          uniqueResponses[id] = resp;
-        }
-      }
-    });
-    validResponses = Object.values(uniqueResponses);
-    if (validResponses.length === 0) return;
-
+  // Tooltip Functions
+  function showTooltip(event, responses, reverseName = false) {
+    // reverseName = false will show default (productName - supplierName)
+    // reverseName = true will show (supplierName - productName)
+    let prodName = responses[0] && responses[0].ProductName ? responses[0].ProductName : "";
+    let suppName = responses[0] && responses[0].supplierName ? responses[0].supplierName : "";
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip');
-
-    if (responses[0] && responses[0].ProductName) {
-      const prodNameEl = document.createElement('div');
-      prodNameEl.textContent = responses[0].ProductName;
-      prodNameEl.style.fontWeight = 'bold';
-      prodNameEl.style.marginBottom = '5px';
-      tooltip.appendChild(prodNameEl);
-    }
+    
+    // If reverseName is true, make supplierName bold.
+    let headerText = reverseName
+      ? `<strong>${suppName}</strong> - ${prodName}`
+      : `${prodName} - ${suppName}`;
+      
+    tooltip.innerHTML = headerText;
+    
+    // If there are additional details (e.g. fare details) add a table.
     const table = document.createElement('table');
     table.classList.add('tooltip-table');
     const headerRow = document.createElement('tr');
@@ -164,8 +125,8 @@ document.addEventListener('DOMContentLoaded', function () {
     headerRow.appendChild(fareNameTh);
     headerRow.appendChild(numAvailableTh);
     table.appendChild(headerRow);
-
-    validResponses.forEach(resp => {
+    
+    responses.forEach(resp => {
       const row = document.createElement('tr');
       const fareNameTd = document.createElement('td');
       fareNameTd.textContent = resp.FareName || "";
@@ -176,11 +137,13 @@ document.addEventListener('DOMContentLoaded', function () {
       table.appendChild(row);
     });
     tooltip.appendChild(table);
+    
     document.body.appendChild(tooltip);
     const x = event.pageX + 10;
     const y = event.pageY + 10;
     tooltip.style.left = x + 'px';
     tooltip.style.top = y + 'px';
+    tooltip.style.pointerEvents = 'none';
     event.currentTarget._tooltip = tooltip;
   }
 
@@ -189,31 +152,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (tooltip) {
       tooltip.remove();
       event.currentTarget._tooltip = null;
-    }
-  }
-
-  // Reverse Tooltip for product links (first column)
-  function showReverseTooltip(event) {
-    const anchor = event.currentTarget;
-    const productName = anchor.dataset.productName || "";
-    const supplierName = anchor.dataset.supplierName || "";
-    const tooltip = document.createElement('div');
-    tooltip.classList.add('tooltip');
-    // Custom styling already defined in CSS (background #FECB00, black text, font-size 15px)
-    tooltip.innerHTML = `<strong>${supplierName}</strong> - ${productName}`;
-    document.body.appendChild(tooltip);
-    const x = event.pageX + 10;
-    const y = event.pageY + 10;
-    tooltip.style.left = x + 'px';
-    tooltip.style.top = y + 'px';
-    anchor._reverseTooltip = tooltip;
-  }
-
-  function hideReverseTooltip(event) {
-    const tooltip = event.currentTarget._reverseTooltip;
-    if (tooltip) {
-      tooltip.remove();
-      event.currentTarget._reverseTooltip = null;
     }
   }
 
@@ -340,18 +278,17 @@ document.addEventListener('DOMContentLoaded', function () {
         hideSpinner();
         return;
       }
-      
-      // Sort the products based on the current sorting mode.
-      if (currentSorting === "alphabetical") {
+      // Apply sorting based on the current preset's sorting mode.
+      if (currentPresetSorting === 'list' && Array.isArray(currentPresetOrder) && currentPresetOrder.length > 0) {
+        products.sort((a, b) => {
+          let aIndex = currentPresetOrder.indexOf(a.productId.toString());
+          let bIndex = currentPresetOrder.indexOf(b.productId.toString());
+          return aIndex - bIndex;
+        });
+      } else {
         products.sort((a, b) => a.name.localeCompare(b.name));
-      } else if (currentSorting === "list") {
-        // Get the order from the current productIds list.
-        let order = document.getElementById('productIds').value.split(',')
-                      .map(id => id.trim());
-        products.sort((a, b) => order.indexOf(String(a.productId)) - order.indexOf(String(b.productId)));
       }
       
-      // Build the products table (for reference) with product name and details.
       const fragProducts = document.createDocumentFragment();
       const productsTable = document.createElement('table');
       productsTable.innerHTML = `<thead>
@@ -364,15 +301,9 @@ document.addEventListener('DOMContentLoaded', function () {
       const ptbody = document.createElement('tbody');
       products.forEach(product => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank" 
-                             data-product-name="${product.name}" data-supplier-name="${product.supplierName || ''}">${product.name} - ${product.supplierName || ''}</a></td>
+        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name}</a></td>
                          <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>
                          <td>${(Array.isArray(product.faresprices) ? product.faresprices.map(f => f.productPricesDetailsId).join(', ') : "N/A")}</td>`;
-        const anchor = row.querySelector('td a');
-        if (anchor) {
-          anchor.addEventListener('mouseenter', showReverseTooltip);
-          anchor.addEventListener('mouseleave', hideReverseTooltip);
-        }
         ptbody.appendChild(row);
       });
       productsTable.appendChild(ptbody);
@@ -380,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('results').innerHTML = "";
       document.getElementById('results').appendChild(fragProducts);
       
-      // Build the availability table.
+      // Build availability table
       const fragAvail = document.createDocumentFragment();
       const availTable = document.createElement('table');
       availTable.classList.add("availability-table");
@@ -425,56 +356,45 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const availData = await checkAvailabilityForProduct(product, accessToken, selectedMonthYear);
         const row = document.createElement('tr');
-        // First column: product name and supplier name (as defined)
-        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank" 
-                           data-product-name="${product.name}" data-supplier-name="${product.supplierName || ''}">${product.name} - ${product.supplierName || ''}</a></td>
+        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name}</a></td>
                          <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>`;
-        const prodAnchor = row.querySelector('td a');
-        if (prodAnchor) {
-          prodAnchor.addEventListener('mouseenter', showReverseTooltip);
-          prodAnchor.addEventListener('mouseleave', hideReverseTooltip);
-        }
-        // Loop through each day column.
         for (let d = startDay; d <= daysInMonth; d++) {
           const cell = document.createElement('td');
           const dayStr = d.toString().padStart(2, '0');
           const dateKey = `${selectedYear}-${formattedMonth}-${dayStr}`;
           if (availData && availData.hasOwnProperty(dateKey)) {
             const responses = availData[dateKey];
-            // If any of these error strings exist, mark cell as grey and remove text.
-            const greyErrors = [
-              "No BookingSystem", 
-              "Caching not enabled for this fare", 
-              "Wrong Season / Caching not enabled for this fare", 
-              "Wrong Season / No BookingSystem"
-            ];
-            if (responses.some(item => greyErrors.includes(item.Error))) {
-              cell.style.backgroundColor = 'grey';
-              cell.textContent = "";
-            } else if (responses.some(item => item.NumAvailable !== undefined && item.NumAvailable >= 1)) {
+            // If any response has a valid availability (>= 1), mark green.
+            if (responses.some(item => item.NumAvailable !== undefined && item.NumAvailable >= 1)) {
               cell.textContent = "";
               cell.style.backgroundColor = 'green';
-            } else if (responses.some(item => item.NumAvailable !== undefined) && responses.every(item => item.NumAvailable <= 0)) {
+            }
+            // If responses have 0 availability, mark red.
+            else if (responses.some(item => item.NumAvailable !== undefined) &&
+                     responses.every(item => item.NumAvailable === 0 || item.NumAvailable === -1)) {
               cell.textContent = "";
               cell.style.backgroundColor = '#cc6666';
-            } else if (responses.every(item => item.Error && (
+            }
+            // If responses indicate caching or booking errors, mark yellow (unless conditions below are met for grey).
+            else if (responses.every(item => item.Error && (
                          item.Error === "Wrong Season" ||
+                         item.Error === "No BookingSystem" ||
+                         item.Error === "Wrong Season / No BookingSystem" ||
                          item.Error === "Unable to fetch cached availability. Use checkavailabilityrange to get availability."))) {
               cell.textContent = "";
               cell.style.backgroundColor = '#cccc66';
-            } else {
-              const validResponse = responses.find(item => item.NumAvailable !== undefined);
-              if (validResponse) {
-                cell.textContent = (validResponse.NumAvailable === 0 || validResponse.NumAvailable === -1)
-                  ? ""
-                  : validResponse.NumAvailable;
-                if (validResponse.NumAvailable === 0 || validResponse.NumAvailable === -1) {
-                  cell.style.backgroundColor = '#cc6666';
-                }
-              } else {
-                cell.textContent = responses[0].Error || "N/A";
-              }
             }
+            // Check for error messages that should result in a grey cell.
+            if (responses.some(item => 
+                item.Error === "No BookingSystem" ||
+                item.Error === "Caching not enabled for this fare" ||
+                item.Error === "Wrong Season / Caching not enabled for this fare" ||
+                item.Error === "Wrong Season / No BookingSystem"
+               )) {
+              cell.textContent = "";
+              cell.style.backgroundColor = 'grey';
+            }
+            // Attach tooltip on hover (default tooltip for cell)
             cell.dataset.responses = JSON.stringify(responses);
             cell.addEventListener('mouseenter', function(e) {
               showTooltip(e, responses);
@@ -509,46 +429,44 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Load preset buttons dynamically from presets.json.
-  async function loadPresetButtons() {
+  // Load the presets from the external JSON file and create the buttons dynamically.
+  async function loadPresets() {
     try {
       const response = await fetch('presets.json');
-      if (!response.ok) throw new Error("Failed to load presets.json");
-      const data = await response.json();
-      const presets = data.presets;
-      const container = document.getElementById('preset-buttons');
-      container.innerHTML = "";
-      presets.forEach(preset => {
-        const btn = document.createElement('button');
-        btn.id = preset.id;
-        btn.textContent = preset.name;
-        btn.addEventListener('click', () => {
-          logMessage(`Preset ${preset.name} button clicked.`);
+      const presetsData = await response.json();
+      const presetButtonsContainer = document.querySelector('.preset-buttons');
+      // Create a button for each preset from the JSON file.
+      presetsData.presets.forEach(preset => {
+        const button = document.createElement('button');
+        button.id = preset.id;
+        button.textContent = preset.name;
+        button.addEventListener('click', () => {
           document.getElementById('productIds').value = preset.productIds;
-          // Set the current sorting mode based on preset JSON.
-          currentSorting = preset.sorting || "alphabetical";
+          currentPresetSorting = preset.sorting;
+          if (preset.sorting === 'list') {
+            currentPresetOrder = preset.productIds.split(',').map(s => s.trim());
+          } else {
+            currentPresetOrder = [];
+          }
           loadCalendarData();
         });
-        container.appendChild(btn);
+        presetButtonsContainer.appendChild(button);
       });
+      // Add the always-present Manual button.
+      const manualButton = document.createElement('button');
+      manualButton.id = 'manualLoadButton';
+      manualButton.textContent = "Manual load";
+      manualButton.addEventListener('click', function() {
+        document.querySelector('.input-row').style.display = 'flex';
+      });
+      presetButtonsContainer.appendChild(manualButton);
     } catch (error) {
       console.error("Error loading presets:", error);
     }
   }
 
-  // Manual load button event.
-  const manualLoadButton = document.getElementById('manualLoadButton');
-  if (manualLoadButton) {
-    manualLoadButton.addEventListener('click', function() {
-      logMessage("Manual load button clicked. Revealing input row.");
-      document.querySelector('.input-row').style.display = 'flex';
-    });
-  } else {
-    console.error("Manual load button not found.");
-  }
-
-  // Initialize dropdown, load presets and attach Submit event.
+  // Initialize the dropdown, load presets, and attach Submit event.
   populateMonthYearDropdown();
-  loadPresetButtons();
+  loadPresets();
   document.getElementById('loadCalendars').addEventListener('click', loadCalendarData);
 });
