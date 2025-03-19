@@ -32,14 +32,7 @@ body {
   gap: 10px;
 }
 
-/* Manual Load Button Container */
-.manual-load-container {
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: center;
-}
-
-/* Input Row (hidden by default) */
+/* Input Row: Label, Input, and Button on one line; hidden by default */
 .input-row {
   display: none;
   align-items: center;
@@ -48,10 +41,11 @@ body {
   margin-bottom: 15px;
 }
 
-/* Label and Input */
+/* Product Input and Select */
 label {
   font-weight: bold;
 }
+
 input[type="text"], select {
   padding: 8px;
   box-sizing: border-box;
@@ -71,23 +65,24 @@ button {
   transition: background-color 0.3s;
   border-radius: 5px;
 }
+
 button:hover {
   background-color: #ffd635;
 }
 
-/* Link Styles in table cells */
-td a {
+/* Links inside tables */
+table a {
   color: #ffffff;
   text-decoration: none;
   font-size: 13px;
 }
 
-/* Hide the Product Table initially */
+/* Hide the Product Table */
 #results {
   display: none;
 }
 
-/* Calendar Controls and Legend (hidden by default) */
+/* Calendar Controls and Legend are hidden initially */
 #calendarControls,
 #legend {
   display: none;
@@ -104,6 +99,7 @@ td a {
   margin: 20px auto;
   display: none;
 }
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -121,22 +117,27 @@ table {
   margin: 20px auto;
   border-collapse: collapse;
 }
+
 table, th, td {
   border: 1px solid #333;
 }
+
 th, td {
   padding: 4px 8px;
   text-align: center;
 }
+
 th {
   background-color: #1e1e1e;
   color: #e0e0e0;
   font-weight: bold;
 }
+
 td {
   background-color: #181818;
 }
-/* First column styling (product names) */
+
+/* First column (product names) styling: max-width 160px with ellipsis */
 table tr th:first-child,
 table tr td:first-child {
   max-width: 160px;
@@ -155,9 +156,11 @@ table tr td:first-child {
   margin-right: auto;
   font-size: 14px;
 }
+
 .legend p {
   margin: 4px 0;
 }
+
 .legend-box {
   display: inline-block;
   width: 16px;
@@ -170,20 +173,24 @@ table tr td:first-child {
 /* Tooltip Styles */
 .tooltip {
   position: absolute;
-  background: #FECB00;
+  background: #FECB00; /* same as button background */
   color: #000;
   border: 1px solid #444;
   padding: 5px;
   z-index: 1000;
-  font-size: 18px; /* Increased by 2px */
+  font-size: 15px; /* increased by 2px assuming the default was 13px */
   pointer-events: none;
 }
-.tooltip b {
+
+.tooltip strong {
   font-weight: bold;
 }
+
+/* Tooltip table inside tooltip */
 .tooltip-table {
   border-collapse: collapse;
 }
+
 .tooltip-table th,
 .tooltip-table td {
   border: 1px solid #555;
