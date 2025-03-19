@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>v3 Kennys Product Calendar Loader</title>
+  <title>Kennys Product Calendar Loader</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="script.js"></script>
 </head>
 <body>
   <div class="container">
-    <h2>Kennys Product Calendar Loader</h2>
+    <h2>v4 Kennys Product Calendar Loader</h2>
 
     <!-- Month/Year Dropdown Container -->
     <div class="dropdown-container">
@@ -16,8 +16,8 @@
       <select id="monthYearDropdown"></select>
     </div>
     
-    <!-- Preset Buttons Container (buttons will be created dynamically) -->
-    <div class="preset-buttons"></div>
+    <!-- Preset Buttons Container (will be populated dynamically) -->
+    <div class="preset-buttons" id="presetButtonsContainer"></div>
     
     <!-- Input Row: Label, Input, and Submit Button (hidden by default) -->
     <div class="input-row" style="display: none;">
@@ -47,9 +47,9 @@
     <!-- Legend -->
     <div id="legend" class="legend">
       <p><span class="legend-box" style="background-color: green;"></span>Green: Valid availability</p>
-      <p><span class="legend-box" style="background-color: #cc6666;"></span>Red: Not available / Not running / Zero availability</p>
+      <p><span class="legend-box" style="background-color: #cc6666;"></span>Red: Not available / Not running / 0 availability</p>
       <p><span class="legend-box" style="background-color: #cccc66;"></span>Yellow: No seasonal fares for this date or no live availability connection</p>
-      <p><span class="legend-box" style="background-color: grey;"></span>Grey: Not operating (No BookingSystem, Caching not enabled for this fare, Wrong Season / Caching not enabled for this fare, Wrong Season / No BookingSystem)</p>
+      <p><span class="legend-box" style="background-color: grey;"></span>Grey: Not operating / Caching not enabled / No BookingSystem / Wrong Season</p>
     </div>
   </div>
 </body>
