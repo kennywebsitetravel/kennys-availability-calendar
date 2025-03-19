@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Utility function to log key messages.
+  // Global variable to store current sorting mode ("alphabetical" or "list")
+  let currentSorting = "alphabetical";
+
+  // Utility function to log messages.
   const logMessage = message => console.log(message);
 
   // Spinner Functions
@@ -96,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Tooltip for availability cells.
   function showTooltip(event, responses) {
-    // (Existing tooltip for availability cells remains unchanged.)
+    // Check for a couple specific errors for a simple tooltip.
     if (responses.every(resp => resp.Error === "Caching not enabled for this fare")) {
       const tooltip = document.createElement('div');
       tooltip.classList.add('tooltip');
@@ -178,7 +181,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const y = event.pageY + 10;
     tooltip.style.left = x + 'px';
     tooltip.style.top = y + 'px';
-    tooltip.style.pointerEvents = 'none';
     event.currentTarget._tooltip = tooltip;
   }
 
@@ -190,27 +192,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Reverse Tooltip for product link (first column)
+  // Reverse Tooltip for product links (first column)
   function showReverseTooltip(event) {
     const anchor = event.currentTarget;
     const productName = anchor.dataset.productName || "";
     const supplierName = anchor.dataset.supplierName || "";
-    // Create tooltip element
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip');
-    // Apply custom styling: same background as buttons, black text, increased font size (by 2px)
-    tooltip.style.backgroundColor = '#FECB00';
-    tooltip.style.color = 'black';
-    tooltip.style.fontSize = '15px'; // assuming base is 13px, so add 2px
-    tooltip.style.padding = '5px';
-    tooltip.style.border = '1px solid #444';
-    tooltip.style.borderRadius = '5px';
-    // Construct the tooltip text with supplierName bold
+    // Custom styling already defined in CSS (background #FECB00, black text, font-size 15px)
     tooltip.innerHTML = `<strong>${supplierName}</strong> - ${productName}`;
     document.body.appendChild(tooltip);
     const x = event.pageX + 10;
     const y = event.pageY + 10;
-    tooltip.style.position = 'absolute';
     tooltip.style.left = x + 'px';
     tooltip.style.top = y + 'px';
     anchor._reverseTooltip = tooltip;
@@ -347,7 +340,16 @@ document.addEventListener('DOMContentLoaded', function () {
         hideSpinner();
         return;
       }
-      products.sort((a, b) => a.name.localeCompare(b.name));
+      
+      // Sort the products based on the current sorting mode.
+      if (currentSorting === "alphabetical") {
+        products.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (currentSorting === "list") {
+        // Get the order from the current productIds list.
+        let order = document.getElementById('productIds').value.split(',')
+                      .map(id => id.trim());
+        products.sort((a, b) => order.indexOf(String(a.productId)) - order.indexOf(String(b.productId)));
+      }
       
       // Build the products table (for reference) with product name and details.
       const fragProducts = document.createDocumentFragment();
@@ -366,7 +368,6 @@ document.addEventListener('DOMContentLoaded', function () {
                              data-product-name="${product.name}" data-supplier-name="${product.supplierName || ''}">${product.name} - ${product.supplierName || ''}</a></td>
                          <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>
                          <td>${(Array.isArray(product.faresprices) ? product.faresprices.map(f => f.productPricesDetailsId).join(', ') : "N/A")}</td>`;
-        // Attach reverse tooltip events on the anchor.
         const anchor = row.querySelector('td a');
         if (anchor) {
           anchor.addEventListener('mouseenter', showReverseTooltip);
@@ -428,7 +429,6 @@ document.addEventListener('DOMContentLoaded', function () {
         row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank" 
                            data-product-name="${product.name}" data-supplier-name="${product.supplierName || ''}">${product.name} - ${product.supplierName || ''}</a></td>
                          <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>`;
-        // Attach reverse tooltip events on the anchor in the availability table as well.
         const prodAnchor = row.querySelector('td a');
         if (prodAnchor) {
           prodAnchor.addEventListener('mouseenter', showReverseTooltip);
@@ -441,8 +441,13 @@ document.addEventListener('DOMContentLoaded', function () {
           const dateKey = `${selectedYear}-${formattedMonth}-${dayStr}`;
           if (availData && availData.hasOwnProperty(dateKey)) {
             const responses = availData[dateKey];
-            // Check if any of the responses contain one of the specific errors for grey.
-            const greyErrors = ["No BookingSystem", "Caching not enabled for this fare", "Wrong Season / Caching not enabled for this fare", "Wrong Season / No BookingSystem"];
+            // If any of these error strings exist, mark cell as grey and remove text.
+            const greyErrors = [
+              "No BookingSystem", 
+              "Caching not enabled for this fare", 
+              "Wrong Season / Caching not enabled for this fare", 
+              "Wrong Season / No BookingSystem"
+            ];
             if (responses.some(item => greyErrors.includes(item.Error))) {
               cell.style.backgroundColor = 'grey';
               cell.textContent = "";
@@ -504,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Preset Buttons Handling: load presets from presets.json and attach event listeners.
+  // Load preset buttons dynamically from presets.json.
   async function loadPresetButtons() {
     try {
       const response = await fetch('presets.json');
@@ -512,7 +517,6 @@ document.addEventListener('DOMContentLoaded', function () {
       const data = await response.json();
       const presets = data.presets;
       const container = document.getElementById('preset-buttons');
-      // Clear any existing buttons (if any)
       container.innerHTML = "";
       presets.forEach(preset => {
         const btn = document.createElement('button');
@@ -521,13 +525,14 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', () => {
           logMessage(`Preset ${preset.name} button clicked.`);
           document.getElementById('productIds').value = preset.productIds;
+          // Set the current sorting mode based on preset JSON.
+          currentSorting = preset.sorting || "alphabetical";
           loadCalendarData();
         });
         container.appendChild(btn);
       });
     } catch (error) {
       console.error("Error loading presets:", error);
-      // Fallback: keep any static preset buttons already in the HTML.
     }
   }
 
