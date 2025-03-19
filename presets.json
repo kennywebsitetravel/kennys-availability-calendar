@@ -18,6 +18,12 @@
       "productIds": "54578,67375,67398,5749,68245,68254,68257,68260,18541,52092,68248,68251,66006,66008,49688,49672",
       "sorting": "alphabetical"
     },
+        {
+      "id": "presettest",
+      "name": "test Island",
+      "productIds": "49688,49672",
+      "sorting": "list"
+    },
     {
       "id": "presetEastCoast",
       "name": "East Coast",
