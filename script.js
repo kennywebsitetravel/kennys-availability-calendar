@@ -119,19 +119,23 @@ document.addEventListener('DOMContentLoaded', function () {
     event.currentTarget._tooltip = tooltip;
   }
 
-  // 2. Daily Availability Cell Tooltip.
-  function showCellTooltip(event, responses) {
-    const tooltip = document.createElement('div');
-    tooltip.classList.add('tooltip');
-    if (responses[0] && responses[0].ProductName) {
-  const prodNameEl = document.createElement('div');
-  prodNameEl.textContent = responses[0].ProductName;
-  prodNameEl.style.fontWeight = 'bold';
-  prodNameEl.style.marginBottom = '5px';
-  tooltip.appendChild(prodNameEl);
-}
-    tooltip.style.position = 'absolute';
-    tooltip.style.background = '#FECB00';
+// 2. Daily Availability Cell Tooltip.
+function showCellTooltip(event, responses) {
+  const tooltip = document.createElement('div');
+  tooltip.classList.add('tooltip');
+
+  // Insert the product name in bold at the top of the tooltip.
+  if (responses[0] && responses[0].ProductName) {
+    const prodNameEl = document.createElement('div');
+    prodNameEl.textContent = responses[0].ProductName;
+    prodNameEl.style.fontWeight = 'bold';
+    prodNameEl.style.marginBottom = '5px';
+    tooltip.appendChild(prodNameEl);
+  }
+
+  // Set the tooltip styles.
+  tooltip.style.position = 'absolute';
+  tooltip.style.background = '#FECB00';
     tooltip.style.color = '#FFFFFF';
     tooltip.style.pointerEvents = 'none';
     tooltip.style.padding = '5px';
