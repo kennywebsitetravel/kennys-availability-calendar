@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Global variables to hold the current preset (if any) and its sorting method.
+  // Global variables to hold the current preset (if any) and its sorting method
   let currentPreset = null;
   let currentSortingMethod = "alphabetical"; // default if none chosen
 
