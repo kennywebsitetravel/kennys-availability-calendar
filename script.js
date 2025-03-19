@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
     tooltip.classList.add('tooltip');
     tooltip.style.position = 'absolute';
     tooltip.style.background = '#FECB00';
-    tooltip.style.color = 'black';
+    tooltip.style.color = 'white';
     tooltip.style.pointerEvents = 'none';
     tooltip.style.padding = '5px';
     tooltip.style.border = '1px solid #333';
