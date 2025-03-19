@@ -148,11 +148,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (responses.every(resp => resp.Error &&
          (resp.Error === "Wrong Season" ||
           resp.Error === "No BookingSystem" ||
+          resp.Error === "Wrong Season / Caching not enabled for this fare" ||
           resp.Error === "Wrong Season / No BookingSystem" ||
           resp.Error === "Unable to fetch cached availability. Use checkavailabilityrange to get availability."))) {
       const tooltip = document.createElement('div');
       tooltip.classList.add('tooltip');
-      tooltip.textContent = "Wrong Season";
+      tooltip.textContent = responses[0].Error || "Error";
       document.body.appendChild(tooltip);
       const x = event.pageX + 10;
       const y = event.pageY + 10;
@@ -478,6 +479,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (responses.some(item => item.NumAvailable !== undefined && item.NumAvailable >= 1)) {
               cell.textContent = "";
               cell.style.backgroundColor = 'green';
+            } else if (responses.some(item => item.NumAvailable !== undefined && item.NumAvailable < 0)) {
+              cell.textContent = "";
+              cell.style.backgroundColor = 'grey';
             } else if (responses.some(item => item.NumAvailable !== undefined) &&
                        responses.every(item => item.NumAvailable === 0)) {
               cell.textContent = "";
@@ -496,11 +500,11 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
               const validResponse = responses.find(item => item.NumAvailable !== undefined);
               if (validResponse) {
-                cell.textContent = (validResponse.NumAvailable === 0)
-                  ? ""
-                  : validResponse.NumAvailable;
                 if (validResponse.NumAvailable === 0) {
+                  cell.textContent = "";
                   cell.style.backgroundColor = '#cc6666';
+                } else {
+                  cell.textContent = validResponse.NumAvailable;
                 }
               } else {
                 cell.textContent = responses[0].Error || "N/A";
