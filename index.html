@@ -16,24 +16,15 @@
       <select id="monthYearDropdown"></select>
     </div>
     
-    <!-- Preset Buttons Container (buttons loaded from presets.json will appear here) -->
-    <div class="preset-buttons" id="preset-buttons">
-      <!-- If presets.json fails to load, these static buttons are available as a fallback -->
-      <button id="presetWhitsunday">Whitsunday boats</button>
-      <button id="presetGreatBarrierReef">Great Barrier Reef Cairns</button>
-      <button id="presetOtherTours">Fraser Island</button>
-      <button id="presetEastCoast">East Coast</button>
-    </div>
-    
-    <!-- Manual load button -->
-    <div class="preset-buttons">
-      <button id="manualLoadButton">Manual load</button>
+    <!-- Preset Buttons -->
+    <div id="preset-buttons" class="preset-buttons">
+      <!-- These buttons will be created dynamically based on presets.json -->
     </div>
     
     <!-- Input Row: Label, Input, and Submit Button (hidden by default) -->
     <div class="input-row" style="display: none;">
       <label for="productIds">Product IDs (comma separated):</label>
-      <input type="text" id="productIds" value="54584,54533,54317" />
+      <input type="text" id="productIds" value="" />
       <button id="loadCalendars">Submit</button>
     </div>
     
@@ -58,9 +49,9 @@
     <!-- Legend -->
     <div id="legend" class="legend">
       <p><span class="legend-box" style="background-color: green;"></span>Green: Valid availability</p>
-      <p><span class="legend-box" style="background-color: #cc6666;"></span>Red: Not available / Not running</p>
-      <p><span class="legend-box" style="background-color: #cccc66;"></span>Yellow: No seasonal fares for this date or no live availability connection</p>
-      <p><span class="legend-box" style="background-color: grey;"></span>Grey: Not operating / Caching not enabled / No BookingSystem</p>
+      <p><span class="legend-box" style="background-color: #cc6666;"></span>Red: Not available / Not running / 0 available</p>
+      <p><span class="legend-box" style="background-color: #cccc66;"></span>Yellow: No seasonal fares or no live connection</p>
+      <p><span class="legend-box" style="background-color: grey;"></span>Grey: Not operating (No BookingSystem, Caching not enabled, Wrong Season / Caching not enabled, or Wrong Season / No BookingSystem)</p>
     </div>
   </div>
 </body>
