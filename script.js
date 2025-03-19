@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   // Global variables to hold the current preset (if any) and its sorting method
   let currentPreset = null;
-  let currentSortingMethod = "alphabetical"; // default if none chosen
+  let currentSortingMethod = "alphabetical"; // default if none chosen.
 
   // Utility function to log messages.
   const logMessage = message => console.log(message);
