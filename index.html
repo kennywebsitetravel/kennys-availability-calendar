@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Kennys Product Calendar Loader</title>
+  <title>v3 Kennys Product Calendar Loader</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="script.js"></script>
 </head>
@@ -16,15 +16,8 @@
       <select id="monthYearDropdown"></select>
     </div>
     
-    <!-- Preset Buttons Container (populated dynamically) -->
-    <div class="preset-buttons">
-      <!-- Preset buttons will be inserted here -->
-    </div>
-
-    <!-- Manual Button Container (always visible) -->
-    <div class="manual-load-container">
-      <button id="manualLoadButton">Manual</button>
-    </div>
+    <!-- Preset Buttons Container (buttons will be created dynamically) -->
+    <div class="preset-buttons"></div>
     
     <!-- Input Row: Label, Input, and Submit Button (hidden by default) -->
     <div class="input-row" style="display: none;">
@@ -54,9 +47,9 @@
     <!-- Legend -->
     <div id="legend" class="legend">
       <p><span class="legend-box" style="background-color: green;"></span>Green: Valid availability</p>
-      <p><span class="legend-box" style="background-color: #cc6666;"></span>Red: Not available / Not running / 0 availability</p>
-      <p><span class="legend-box" style="background-color: #cccc66;"></span>Yellow: No seasonal fares or no live connection</p>
-      <p><span class="legend-box" style="background-color: grey;"></span>Grey: Not operating / Caching not enabled / No BookingSystem / Wrong Season / Caching not enabled for this fare / Wrong Season / No BookingSystem</p>
+      <p><span class="legend-box" style="background-color: #cc6666;"></span>Red: Not available / Not running / Zero availability</p>
+      <p><span class="legend-box" style="background-color: #cccc66;"></span>Yellow: No seasonal fares for this date or no live availability connection</p>
+      <p><span class="legend-box" style="background-color: grey;"></span>Grey: Not operating (No BookingSystem, Caching not enabled for this fare, Wrong Season / Caching not enabled for this fare, Wrong Season / No BookingSystem)</p>
     </div>
   </div>
 </body>
