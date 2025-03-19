@@ -455,7 +455,7 @@ function showCellTooltip(event, responses) {
             }
             cell.textContent = cellText;
             if (cellColor) cell.style.backgroundColor = cellColor;
-            cell.dataset.responses = JSON.stringify(responses);
+            cell.responses = responses;
             cell.style.cursor = 'pointer';
             cell.addEventListener('mouseenter', function (e) {
               showCellTooltip(e, responses);
