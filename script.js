@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const table = document.createElement('table');
       table.style.borderCollapse = 'collapse';
       table.style.fontSize = '12px';
-      table.style.color = 'black';
+      table.style.color = 'white';
       const headerRow = document.createElement('tr');
       const thFare = document.createElement('th');
       thFare.textContent = "Fare Name";
