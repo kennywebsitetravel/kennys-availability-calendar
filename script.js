@@ -94,17 +94,95 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Tooltip functions.
-  function showTooltip(event, responses) {
-    // Create tooltip element.
+  // ------------------------
+  // TOOLTIP FUNCTIONS
+  // ------------------------
+
+  // Tooltip for availability cells (non-first-column).
+  function showCellTooltip(event, responses) {
+    // If all responses have a specific error, display a simple message.
+    if (responses.every(resp => resp.Error === "Caching not enabled for this fare")) {
+      const tooltip = document.createElement('div');
+      tooltip.classList.add('tooltip');
+      tooltip.style.background = "#FECB00";
+      tooltip.style.color = "black";
+      tooltip.textContent = "Caching not enabled for this fare";
+      document.body.appendChild(tooltip);
+      const x = event.pageX + 10;
+      const y = event.pageY + 10;
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+      event.currentTarget._tooltip = tooltip;
+      return;
+    }
+    if (responses.every(resp => resp.Error &&
+         (resp.Error === "Wrong Season" ||
+          resp.Error === "No BookingSystem" ||
+          resp.Error === "Wrong Season / No BookingSystem" ||
+          resp.Error === "Unable to fetch cached availability. Use checkavailabilityrange to get availability."))) {
+      const tooltip = document.createElement('div');
+      tooltip.classList.add('tooltip');
+      tooltip.style.background = "#FECB00";
+      tooltip.style.color = "black";
+      tooltip.textContent = "Wrong Season";
+      document.body.appendChild(tooltip);
+      const x = event.pageX + 10;
+      const y = event.pageY + 10;
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+      event.currentTarget._tooltip = tooltip;
+      return;
+    }
+    let validResponses = responses.filter(resp => resp.Error !== "No BookingSystem" && resp.Error !== "Wrong Season");
+    const uniqueResponses = {};
+    validResponses.forEach(resp => {
+      const id = resp.ProductPricesDetailsId;
+      if (!(id in uniqueResponses)) {
+        uniqueResponses[id] = resp;
+      } else {
+        if (resp.NumAvailable !== undefined && resp.NumAvailable > 0 &&
+            (uniqueResponses[id].NumAvailable === undefined || uniqueResponses[id].NumAvailable <= 0)) {
+          uniqueResponses[id] = resp;
+        }
+      }
+    });
+    validResponses = Object.values(uniqueResponses);
+    if (validResponses.length === 0) return;
+
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip');
-    // For the first column tooltip, show "supplierName - productName".
-    const firstResponse = responses[0];
-    let supplierName = firstResponse.supplierName || "Supplier";
-    let productName = firstResponse.ProductName || "";
-    // Style: background same as buttons, text color black, supplierName bold, font increased by 2px.
-    tooltip.innerHTML = `<span style="font-size:15px;"><strong>${supplierName}</strong> - ${productName}</span>`;
+    tooltip.style.background = "#FECB00";
+    tooltip.style.color = "black";
+
+    if (responses[0] && responses[0].ProductName) {
+      const prodNameEl = document.createElement('div');
+      prodNameEl.textContent = responses[0].ProductName;
+      prodNameEl.style.fontWeight = 'bold';
+      prodNameEl.style.marginBottom = '5px';
+      tooltip.appendChild(prodNameEl);
+    }
+    const table = document.createElement('table');
+    table.classList.add('tooltip-table');
+    const headerRow = document.createElement('tr');
+    const fareNameTh = document.createElement('th');
+    fareNameTh.textContent = "Fare Name";
+    const numAvailableTh = document.createElement('th');
+    numAvailableTh.textContent = "Available";
+    headerRow.appendChild(fareNameTh);
+    headerRow.appendChild(numAvailableTh);
+    table.appendChild(headerRow);
+
+    validResponses.forEach(resp => {
+      const row = document.createElement('tr');
+      const fareNameTd = document.createElement('td');
+      fareNameTd.textContent = resp.FareName || "";
+      const numAvailableTd = document.createElement('td');
+      numAvailableTd.textContent = (resp.NumAvailable !== undefined ? resp.NumAvailable : "");
+      row.appendChild(fareNameTd);
+      row.appendChild(numAvailableTd);
+      table.appendChild(row);
+    });
+    tooltip.appendChild(table);
     document.body.appendChild(tooltip);
     const x = event.pageX + 10;
     const y = event.pageY + 10;
@@ -114,6 +192,24 @@ document.addEventListener('DOMContentLoaded', function () {
     event.currentTarget._tooltip = tooltip;
   }
 
+  // Tooltip for the first column links (showing product & supplier info).
+  function showLinkTooltip(event, product) {
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('tooltip');
+    tooltip.style.background = "#FECB00";
+    tooltip.style.color = "black";
+    // Increase font size by 2px (assumes base is 13px → 15px) and make supplier bold.
+    tooltip.innerHTML = `<span style="font-size:15px;"><strong>${product.supplierName || "Supplier"}</strong> - ${product.name}</span>`;
+    document.body.appendChild(tooltip);
+    const x = event.pageX + 10;
+    const y = event.pageY + 10;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+    tooltip.style.pointerEvents = 'none';
+    event.currentTarget._tooltip = tooltip;
+  }
+
+  // Hide tooltip (used for both types).
   function hideTooltip(event) {
     const tooltip = event.currentTarget._tooltip;
     if (tooltip) {
@@ -121,6 +217,10 @@ document.addEventListener('DOMContentLoaded', function () {
       event.currentTarget._tooltip = null;
     }
   }
+
+  // ------------------------
+  // API & DATA FUNCTIONS
+  // ------------------------
 
   // Fetch the ephemeral token from your Google Apps Script.
   async function getAccessTokenFromAppsScript() {
@@ -161,6 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
       days = fullDaysInMonth;
       logMessage(`API Call: ${year}-${formattedMonth}-01, days = ${days}`);
     }
+
     const startDate = `${year}-${formattedMonth}-${String(startDay).padStart(2, '0')}`;
     const params = new URLSearchParams();
     params.append("startDate", startDate);
@@ -319,8 +420,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const availData = await checkAvailabilityForProduct(product, accessToken, selectedMonthYear);
         const row = document.createElement('tr');
-        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank">${product.name}</a></td>
+        // First column: include product name and supplier name.
+        row.innerHTML = `<td><a href="https://tdms.websitetravel.com/#search/text/${product.productId}" target="_blank" data-product="${product.name}" data-supplier="${product.supplierName || ''}">${product.name} - ${product.supplierName || ''}</a></td>
                          <td>${product.durationDays || "0"}/${product.durationNight || "0"}</td>`;
+        // Add tooltip event listeners for the first-column link.
+        const productLink = row.querySelector('td a');
+        productLink.addEventListener('mouseenter', function(e) {
+          showLinkTooltip(e, product);
+        });
+        productLink.addEventListener('mouseleave', function(e) {
+          hideTooltip(e);
+        });
+        // Build one cell per day.
         for (let d = startDay; d <= daysInMonth; d++) {
           const cell = document.createElement('td');
           const dayStr = d.toString().padStart(2, '0');
@@ -359,7 +470,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cell.dataset.responses = JSON.stringify(responses);
             cell.style.cursor = 'pointer';
             cell.addEventListener('mouseenter', function (e) {
-              showTooltip(e, responses);
+              showCellTooltip(e, responses);
             });
             cell.addEventListener('mouseleave', function (e) {
               hideTooltip(e);
@@ -385,8 +496,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Create dynamic preset buttons from an external JSON file.
-  // (The JSON file should be placed in the same directory as this script – e.g., "presets.json")
+  // ------------------------
+  // PRESET BUTTONS (Dynamic from external JSON)
+  // ------------------------
+
   function createPresetButtons(presets) {
     const presetsContainer = document.getElementById('presetButtonsContainer');
     presetsContainer.innerHTML = ""; // Clear any existing buttons.
@@ -414,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function () {
     presetsContainer.appendChild(manualBtn);
   }
 
-  // Fetch presets JSON from an external file.
+  // Fetch presets JSON from an external file (do not hardcode presets in this script).
   fetch('presets.json')
     .then(response => response.json())
     .then(data => {
@@ -422,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })
     .catch(error => console.error("Error fetching presets JSON:", error));
 
-  // Initialize the dropdown and attach the manual submit event.
+  // Initialize dropdown and attach the manual submit event.
   populateMonthYearDropdown();
   document.getElementById('loadCalendars').addEventListener('click', loadCalendarData);
 });
