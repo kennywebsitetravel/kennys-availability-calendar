@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>v1 Kennys Product Calendar Loader</title>
+  <title>Kennys Product Calendar Loader</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="script.js"></script>
 </head>
@@ -16,15 +16,20 @@
       <select id="monthYearDropdown"></select>
     </div>
     
-    <!-- Preset Buttons -->
-    <div id="preset-buttons" class="preset-buttons">
-      <!-- These buttons will be created dynamically based on presets.json -->
+    <!-- Preset Buttons Container -->
+    <div class="preset-buttons">
+      <!-- Preset buttons will be dynamically inserted here -->
+    </div>
+    
+    <!-- Manual Load Button (always visible) -->
+    <div class="manual-load-container">
+      <button id="manualLoadButton">Manual load</button>
     </div>
     
     <!-- Input Row: Label, Input, and Submit Button (hidden by default) -->
     <div class="input-row" style="display: none;">
       <label for="productIds">Product IDs (comma separated):</label>
-      <input type="text" id="productIds" value="" />
+      <input type="text" id="productIds" value="54584,54533,54317" />
       <button id="loadCalendars">Submit</button>
     </div>
     
@@ -49,9 +54,9 @@
     <!-- Legend -->
     <div id="legend" class="legend">
       <p><span class="legend-box" style="background-color: green;"></span>Green: Valid availability</p>
-      <p><span class="legend-box" style="background-color: #cc6666;"></span>Red: Not available / Not running / 0 available</p>
+      <p><span class="legend-box" style="background-color: #cc6666;"></span>Red: Not available / Not running / 0 availability</p>
       <p><span class="legend-box" style="background-color: #cccc66;"></span>Yellow: No seasonal fares or no live connection</p>
-      <p><span class="legend-box" style="background-color: grey;"></span>Grey: Not operating (No BookingSystem, Caching not enabled, Wrong Season / Caching not enabled, or Wrong Season / No BookingSystem)</p>
+      <p><span class="legend-box" style="background-color: grey;"></span>Grey: Not operating / Caching not enabled / No BookingSystem / Wrong Season / Caching not enabled for this fare / Wrong Season / No BookingSystem</p>
     </div>
   </div>
 </body>
