@@ -20,7 +20,7 @@
     },
     {
       "id": "presetEastCoast",
-      "name": "East Coast",
+      "name": "East Coast products",
       "productIds": "49672,54244,18493,3540,3542,54377,54254,52193,66006,66008,49688,3539",
       "sorting": "list"
     }
